@@ -1,7 +1,8 @@
 package http
 
 import (
-	"bookstore_oauth/src/domain/access_token"
+	atDomain "bookstore_oauth/src/domain/access_token"
+	"bookstore_oauth/src/services/access_token"
 	"bookstore_oauth/src/utils/errors"
 	"net/http"
 	"strings"
@@ -36,21 +37,22 @@ func (handler *accessTokenHandler) GetById(c *gin.Context) {
 }
 
 func (handler *accessTokenHandler) Create(c *gin.Context) {
-	var token access_token.AccessToken
+	var token atDomain.AccessTokenRequest
 	if err := c.ShouldBindJSON(&token); err != nil {
 		restErr := errors.NewBadRequestError("Invalid JSON Body")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-	if err := handler.service.Create(token); err != nil {
-		c.JSON(err.Status, err)
+	accessToken, tokenErr := handler.service.Create(token)
+	if tokenErr != nil {
+		c.JSON(tokenErr.Status, tokenErr)
 		return
 	}
-	c.JSON(http.StatusOK, token)
+	c.JSON(http.StatusOK, accessToken)
 }
 
 func (handler *accessTokenHandler) UpdateExpirationTime(c *gin.Context) {
-	var token access_token.AccessToken
+	var token atDomain.AccessToken
 	if err := c.ShouldBindJSON(&token); err != nil {
 		restErr := errors.NewBadRequestError("Invalid JSON Body")
 		c.JSON(restErr.Status, restErr)
